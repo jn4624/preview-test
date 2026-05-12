@@ -1,4 +1,4 @@
-package com.jyujyu.dayonetest;
+package com.jyujyu.inflearnspringtest;
 
 import lombok.Getter;
 import lombok.Setter;

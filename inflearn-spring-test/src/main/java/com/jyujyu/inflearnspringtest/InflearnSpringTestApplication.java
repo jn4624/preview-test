@@ -1,4 +1,4 @@
-package com.jyujyu.dayonetest;
+package com.jyujyu.inflearnspringtest;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

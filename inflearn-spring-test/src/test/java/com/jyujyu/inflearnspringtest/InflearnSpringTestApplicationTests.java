@@ -1,4 +1,4 @@
-package com.jyujyu.dayonetest;
+package com.jyujyu.inflearnspringtest;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
