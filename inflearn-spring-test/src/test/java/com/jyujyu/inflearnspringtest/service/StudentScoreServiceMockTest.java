@@ -3,10 +3,7 @@ package com.jyujyu.inflearnspringtest.service;
 import com.jyujyu.inflearnspringtest.MyCalculator;
 import com.jyujyu.inflearnspringtest.controller.response.ExamFailStudentResponse;
 import com.jyujyu.inflearnspringtest.controller.response.ExamPassStudentResponse;
-import com.jyujyu.inflearnspringtest.model.StudentFail;
-import com.jyujyu.inflearnspringtest.model.StudentPass;
-import com.jyujyu.inflearnspringtest.model.StudentScore;
-import com.jyujyu.inflearnspringtest.model.StudentScoreTestDataBuilder;
+import com.jyujyu.inflearnspringtest.model.*;
 import com.jyujyu.inflearnspringtest.repository.StudentFailRepository;
 import com.jyujyu.inflearnspringtest.repository.StudentPassRepository;
 import com.jyujyu.inflearnspringtest.repository.StudentScoreRepository;
@@ -112,26 +109,14 @@ class StudentScoreServiceMockTest {
     @DisplayName("성적 저장 로직 검증 / 60점 미만인 경우")
     public void saveScoreMockTest2() {
         // given : 평균점수가 60점 미만인 경우
-        String givenStudentName = "jyujyu";
-        String givenExam = "testexam";
-        Integer givenKorScore = 40;
-        Integer givenEnglishScore = 40;
-        Integer givenMathScore = 60;
-
-        StudentScore expectStudentScore = StudentScore.builder()
-                .studentName(givenStudentName)
-                .exam(givenExam)
-                .korScore(givenKorScore)
-                .englishScore(givenEnglishScore)
-                .mathScore(givenMathScore)
-                .build();
+        StudentScore expectStudentScore = StudentScoreFixture.failed();
         StudentFail expectStudentFail = StudentFail.builder()
-                .studentName(givenStudentName)
-                .exam(givenExam)
+                .studentName(expectStudentScore.getStudentName())
+                .exam(expectStudentScore.getExam())
                 .avgScore(new MyCalculator(0.0)
-                        .add(givenKorScore.doubleValue())
-                        .add(givenEnglishScore.doubleValue())
-                        .add(givenMathScore.doubleValue())
+                        .add(expectStudentScore.getKorScore().doubleValue())
+                        .add(expectStudentScore.getEnglishScore().doubleValue())
+                        .add(expectStudentScore.getMathScore().doubleValue())
                         .divide(3.0)
                         .getResult())
                 .build();
@@ -141,11 +126,11 @@ class StudentScoreServiceMockTest {
 
         // when
         studentScoreService.saveScore(
-                givenStudentName,
-                givenExam,
-                givenKorScore,
-                givenEnglishScore,
-                givenMathScore
+                expectStudentScore.getStudentName(),
+                expectStudentScore.getExam(),
+                expectStudentScore.getKorScore(),
+                expectStudentScore.getEnglishScore(),
+                expectStudentScore.getMathScore()
         );
 
         // then
