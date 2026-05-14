@@ -10,6 +10,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.DockerComposeContainer;
 import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
@@ -27,6 +28,7 @@ public class IntegrationTest {
     static DockerComposeContainer rdbms;
     static RedisContainer redis;
     static KafkaContainer kafka;
+    static LocalStackContainer aws;
 
     static {
         rdbms = new DockerComposeContainer(new File("infra/test/docker-compose.yaml"))
@@ -50,6 +52,10 @@ public class IntegrationTest {
         kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.0"))
                 .withKraft();
         kafka.start();
+
+        aws = (new LocalStackContainer(DockerImageName.parse("localstack/localstack:0.11.2")))
+                .withServices(LocalStackContainer.Service.S3);
+        aws.start();
     }
 
     static class IntegrationTestInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -69,6 +75,20 @@ public class IntegrationTest {
 
             String kafkaBootstrapServers = kafka.getBootstrapServers();
             properties.put("spring.kafka.bootstrap-servers", kafkaBootstrapServers);
+
+            try {
+                aws.execInContainer(
+                        "awslocal",
+                        "s3api",
+                        "create-bucket",
+                        "--bucket",
+                        "test-bucket"
+                );
+
+                properties.put("aws.endpoint", aws.getEndpoint().toString());
+            } catch (Exception e) {
+                // ignore
+            }
 
             TestPropertyValues.of(properties).applyTo(applicationContext);
         }
