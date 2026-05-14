@@ -9,7 +9,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
 import java.time.Duration;
@@ -24,6 +26,7 @@ public class IntegrationTest {
 
     static DockerComposeContainer rdbms;
     static RedisContainer redis;
+    static KafkaContainer kafka;
 
     static {
         rdbms = new DockerComposeContainer(new File("infra/test/docker-compose.yaml"))
@@ -39,11 +42,14 @@ public class IntegrationTest {
                         Wait.forLogMessage("(.*Successfully applied.*)|(.*Successfully validated.*)", 1)
                                 .withStartupTimeout(Duration.ofSeconds(300))
                 );
-
         rdbms.start();
 
         redis = new RedisContainer(RedisContainer.DEFAULT_IMAGE_NAME.withTag("6"));
         redis.start();
+
+        kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.0"))
+                .withKraft();
+        kafka.start();
     }
 
     static class IntegrationTestInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -54,14 +60,15 @@ public class IntegrationTest {
 
             String rdbmsHost = rdbms.getServiceHost("local-db", 3306);
             Integer rdbmsPort = rdbms.getServicePort("local-db", 3306);
-
             properties.put("spring.datasource.url", "jdbc:mysql://" + rdbmsHost + ":" + rdbmsPort + "/score");
 
             String redisHost = redis.getHost();
             Integer redisPort = redis.getFirstMappedPort();
-
             properties.put("spring.data.redis.host", redisHost);
             properties.put("spring.data.redis.port", redisPort.toString());
+
+            String kafkaBootstrapServers = kafka.getBootstrapServers();
+            properties.put("spring.kafka.bootstrap-servers", kafkaBootstrapServers);
 
             TestPropertyValues.of(properties).applyTo(applicationContext);
         }
