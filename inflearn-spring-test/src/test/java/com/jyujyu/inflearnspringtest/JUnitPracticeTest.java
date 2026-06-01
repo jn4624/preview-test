@@ -3,6 +3,9 @@ package com.jyujyu.inflearnspringtest;
 import org.junit.jupiter.api.*;
 
 import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class JUnitPracticeTest {
@@ -89,5 +92,13 @@ public class JUnitPracticeTest {
                 () -> Assertions.assertEquals(expect, actual),
                 () -> Assertions.assertIterableEquals(list1, list2)
         );
+    }
+
+    @Test
+    @DisplayName("AssertThat Contains Entry 메소드 테스트")
+    public void assertThatContainsEntryTest() {
+        Map<String, Integer> map = Map.of("kim", 312);
+
+        assertThat(map).containsEntry("kim", 312);
     }
 }
